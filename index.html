@@ -17,24 +17,26 @@
             width: 100%;
             height: 100%;
             background-color: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden;
         }
 
-        /* Contenedor adaptativo 16:9 */
+        /* Contenedor forzado a pantalla completa */
         .video-container {
             width: 100vw;
-            max-width: 100vh;
-            aspect-ratio: 16 / 9;
+            height: 100vh;
             position: absolute;
-            top; 0;
-            left; 0;
+            top: 0;
+            left: 0;
         }
 
         .video-js {
             width: 100% !important;
             height: 100% !important;
+        }
+
+        /* Adaptación del vídeo para cubrir todo el espacio disponible */
+        .video-js .vjs-tech {
+            object-fit: contain !important;
         }
 
         /* Estilos personalizados para las barras azules retro y el HD */
@@ -114,4 +116,3 @@
         }
     </script>
 </body>
-</html>
