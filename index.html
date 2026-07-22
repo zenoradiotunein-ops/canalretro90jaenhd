@@ -2,8 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Canal Retro 90 Jaén HD</title>
+    <!-- Librería HLS.js para reproducir M3U8 en todos los móviles y ordenadores -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
             margin: 0;
@@ -15,8 +17,10 @@
             height: 100%;
             overflow: hidden;
             background-color: #000;
-            font-family: Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
         }
+
+        /* Contenedor principal con efecto de bordes LED Neón Azul */
         .video-container {
             position: absolute;
             top: 0;
@@ -24,55 +28,69 @@
             width: 100%;
             height: 100%;
             z-index: 1;
+            box-shadow: inset 0 0 20px #00e5ff, inset 0 0 40px #00e5ff;
+            border: 2px solid #00e5ff;
         }
+
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
+        /* Distintivo HD en la esquina superior */
+        .hd-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00e5ff;
+            border: 1px solid #00e5ff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            z-index: 4;
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
+            text-transform: uppercase;
+        }
+
+        /* Capa traslúcida con el botón flotante */
         .overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 2;
-            background: rgba(0, 0, 0, 0.2);
+            z-index: 3;
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
         }
+
+        /* Botón Neón LED Azul */
         .play-btn {
-            padding: 15px 30px;
+            padding: 18px 36px;
             font-size: 18px;
             font-weight: bold;
             color: #fff;
             background: linear-gradient(135deg, #00c6ff, #0072ff);
-            border: none;
+            border: 2px solid #00e5ff;
             border-radius: 50px;
-            box-shadow: 0 0 20px rgba(0, 198, 255, 0.6);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.8), 0 0 40px rgba(0, 114, 255, 0.6);
             cursor: pointer;
             outline: none;
-            z-index: 3;
+            z-index: 5;
             transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
         .play-btn:active {
             transform: scale(0.95);
-        }
-        .hd-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #00e5ff;
-            border: 1px solid #00e5ff;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            z-index: 3;
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.9);
         }
     </style>
 </head>
@@ -81,53 +99,57 @@
     <div class="hd-badge">HD 1080</div>
 
     <div class="video-container">
-        <!-- El atributo playsinline y muted permiten arranque instantáneo y suave en móviles -->
-        <video id="bgVideo" loop playsinline muted preload="auto">
-            <source src="TU_ENLACE_DE_VIDEO.mp4" type="video/mp4">
-            Tu navegador no soporta vídeo HTML5.
-        </video>
+        <video id="bgVideo" playsinline muted preload="auto"></video>
     </div>
 
-    <!-- Capa del botón de Play -->
     <div class="overlay" id="overlay">
-        <button class="play-btn" id="playBtn">▶️ REPRODUCIR</button>
+        <button class="play-btn" id="playBtn">▶️ REPRODUCIR DIRECTO</button>
     </div>
-
-    <!-- Audio del Stream -->
-    <audio id="audioStream" preload="none">
-        <source src="TU_ENLACE_DE_STREAM_AUDIO" type="audio/mpeg">
-    </audio>
 
     <script>
+        const m3u8Url = 'https://6641e38ac34c3.streamlock.net:1936/radioporcuna/radioporcuna/playlist.m3u8';
+
         const video = document.getElementById('bgVideo');
-        const audio = document.getElementById('audioStream');
         const playBtn = document.getElementById('playBtn');
         const overlay = document.getElementById('overlay');
 
-        // Intento de arranque automático (para ordenadores)
+        // Inicialización de HLS para reproducir la señal M3U8
+        if (Hls.isSupported()) {
+            const hls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: true
+            });
+            hls.loadSource(m3u8Url);
+            hls.attachMedia(video);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Soporte para Safari en iPhone/iOS
+            video.src = m3u8Url;
+        }
+
+        // Intento de autoplay (para PC)
         window.addEventListener('load', () => {
-            let promise = video.play();
-            if (promise !== undefined) {
-                promise.then(() => {
-                    // Si el navegador permite autoplay, intentamos cargar audio
-                    audio.play().then(() => {
-                        overlay.style.display = 'none';
-                    }).catch(() => {
-                        // Si el móvil bloquea el audio con autoplay, mostramos botón
-                        overlay.style.display = 'flex';
-                    });
-                }).catch(() => {
-                    overlay.style.display = 'flex';
-                });
-            }
+            video.play().then(() => {
+                overlay.style.display = 'none';
+            }).catch(() => {
+                overlay.style.display = 'flex';
+            });
         });
 
-        // Pulsación manual (para móviles)
+        // Evento al pulsar el botón
         playBtn.addEventListener('click', () => {
-            video.muted = false; // Desbloquea sonido en móvil
+            video.muted = false; // Activa el sonido de la retransmisión
             video.play();
-            audio.play();
-            overlay.style.display = 'none'; // Oculta el botón
+            overlay.style.display = 'none';
+
+            // Pide pantalla completa para ocultar la barra de URL en móviles
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {});
+            } else if (elem.webkitRequestFullscreen) { /* Safari / Chrome móvil */
+                elem.webkitRequestFullscreen().catch(() => {});
+            } else if (video.webkitEnterFullscreen) { /* iOS Vídeo */
+                video.webkitEnterFullscreen();
+            }
         });
     </script>
 </body>
