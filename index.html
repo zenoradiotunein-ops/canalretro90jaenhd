@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Canal Retro 90 Jaén HD</title>
-    <!-- Librería HLS.js para reproducir M3U8 en todos los móviles y ordenadores -->
+    <!-- Librería HLS.js para reproducir M3U8 -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
@@ -20,7 +20,7 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        /* Contenedor principal con efecto de bordes LED Neón Azul */
+        /* Contenedor principal adaptado */
         .video-container {
             position: absolute;
             top: 0;
@@ -28,35 +28,40 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            box-shadow: inset 0 0 20px #00e5ff, inset 0 0 40px #00e5ff;
-            border: 2px solid #00e5ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #00e5ff;
+            box-shadow: inset 0 0 15px #00e5ff;
         }
 
+        /* Vídeo entero sin recortes */
         video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            background-color: #000;
         }
 
-        /* Distintivo HD en la esquina superior */
+        /* Indicador HD reubicado abajo a la izquierda para no tapar el logo */
         .hd-badge {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0, 0, 0, 0.8);
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.7);
             color: #00e5ff;
             border: 1px solid #00e5ff;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
             font-weight: bold;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             z-index: 4;
-            box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
             text-transform: uppercase;
         }
 
-        /* Capa traslúcida con el botón flotante */
+        /* Capa del botón de reproducción */
         .overlay {
             position: absolute;
             top: 0;
@@ -64,7 +69,7 @@
             width: 100%;
             height: 100%;
             z-index: 3;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -72,31 +77,26 @@
 
         /* Botón Neón LED Azul */
         .play-btn {
-            padding: 18px 36px;
-            font-size: 18px;
+            padding: 15px 30px;
+            font-size: 16px;
             font-weight: bold;
             color: #fff;
             background: linear-gradient(135deg, #00c6ff, #0072ff);
             border: 2px solid #00e5ff;
             border-radius: 50px;
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.8), 0 0 40px rgba(0, 114, 255, 0.6);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.8);
             cursor: pointer;
             outline: none;
             z-index: 5;
-            transition: transform 0.2s, box-shadow 0.2s;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-
-        .play-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.9);
         }
     </style>
 </head>
 <body>
 
-    <div class="hd-badge">HD 1080</div>
+    <!-- Indicador HD limpio abajo a la izquierda -->
+    <div class="hd-badge">HD</div>
 
     <div class="video-container">
         <video id="bgVideo" playsinline muted preload="auto"></video>
@@ -113,7 +113,6 @@
         const playBtn = document.getElementById('playBtn');
         const overlay = document.getElementById('overlay');
 
-        // Inicialización de HLS para reproducir la señal M3U8
         if (Hls.isSupported()) {
             const hls = new Hls({
                 enableWorker: true,
@@ -122,11 +121,9 @@
             hls.loadSource(m3u8Url);
             hls.attachMedia(video);
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Soporte para Safari en iPhone/iOS
             video.src = m3u8Url;
         }
 
-        // Intento de autoplay (para PC)
         window.addEventListener('load', () => {
             video.play().then(() => {
                 overlay.style.display = 'none';
@@ -135,19 +132,17 @@
             });
         });
 
-        // Evento al pulsar el botón
         playBtn.addEventListener('click', () => {
-            video.muted = false; // Activa el sonido de la retransmisión
+            video.muted = false;
             video.play();
             overlay.style.display = 'none';
 
-            // Pide pantalla completa para ocultar la barra de URL en móviles
             const elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen().catch(() => {});
-            } else if (elem.webkitRequestFullscreen) { /* Safari / Chrome móvil */
+            } else if (elem.webkitRequestFullscreen) {
                 elem.webkitRequestFullscreen().catch(() => {});
-            } else if (video.webkitEnterFullscreen) { /* iOS Vídeo */
+            } else if (video.webkitEnterFullscreen) {
                 video.webkitEnterFullscreen();
             }
         });
