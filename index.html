@@ -2,117 +2,133 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Canal Retro 90 Jaén HD</title>
-
-    <!-- Hojas de estilo y librería Video.js -->
-    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
-    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
     <style>
-        body, html {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
             width: 100%;
             height: 100%;
-            background-color: #000;
             overflow: hidden;
+            background-color: #000;
+            font-family: Arial, sans-serif;
         }
-
-        /* Contenedor forzado a pantalla completa */
         .video-container {
-            width: 100vw;
-            height: 100vh;
             position: absolute;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
-
-        .video-js {
-            width: 100% !important;
-            height: 100% !important;
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-
-        /* Adaptación del vídeo para cubrir todo el espacio disponible */
-        .video-js .vjs-tech {
-            object-fit: contain !important;
-        }
-
-        /* Estilos personalizados para las barras azules retro y el HD */
-        .vjs-matrix .vjs-control-bar {
-            background-color: rgba(10, 15, 25, 0.85) !important;
-        }
-
-        /* Barras de volumen y progreso en azul neón */
-        .vjs-matrix .vjs-play-progress, 
-        .vjs-matrix .vjs-volume-level {
-            background-color: #00a8ff !important;
-            box-shadow: 0 0 8px #00a8ff;
-        }
-
-        /* Chapa HD en los controles */
-        .hd-badge {
-            color: #00a8ff;
-            font-weight: bold;
-            font-size: 11px;
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.2);
             display: flex;
-            align-items: center;
             justify-content: center;
-            padding: 0 8px;
-            border: 1px solid #00a8ff;
-            border-radius: 3px;
-            height: 20px;
-            margin-top: 5px;
-            margin-right: 5px;
-            text-shadow: 0 0 5px #00a8ff;
+            align-items: center;
+        }
+        .play-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 0 20px rgba(0, 198, 255, 0.6);
+            cursor: pointer;
+            outline: none;
+            z-index: 3;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+        .hd-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #00e5ff;
+            border: 1px solid #00e5ff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 3;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
         }
     </style>
 </head>
 <body>
 
+    <div class="hd-badge">HD 1080</div>
+
     <div class="video-container">
-        <video id="videoPlayer" class="video-js vjs-default-skin vjs-matrix vjs-big-play-centered" controls playsinline preload="auto">
+        <!-- El atributo playsinline y muted permiten arranque instantáneo y suave en móviles -->
+        <video id="bgVideo" loop playsinline muted preload="auto">
+            <source src="TU_ENLACE_DE_VIDEO.mp4" type="video/mp4">
+            Tu navegador no soporta vídeo HTML5.
         </video>
     </div>
 
+    <!-- Capa del botón de Play -->
+    <div class="overlay" id="overlay">
+        <button class="play-btn" id="playBtn">▶️ REPRODUCIR</button>
+    </div>
+
+    <!-- Audio del Stream -->
+    <audio id="audioStream" preload="none">
+        <source src="TU_ENLACE_DE_STREAM_AUDIO" type="audio/mpeg">
+    </audio>
+
     <script>
-        const videoElement = document.getElementById('videoPlayer');
-        const streamUrl = 'https://6641e38ac34c3.streamlock.net:1936/radioporcuna/radioporcuna/playlist.m3u8';
+        const video = document.getElementById('bgVideo');
+        const audio = document.getElementById('audioStream');
+        const playBtn = document.getElementById('playBtn');
+        const overlay = document.getElementById('overlay');
 
-        // Inicialización de Video.js
-        const player = videojs('videoPlayer', {
-            autoplay: true,
-            controls: true,
-            responsive: true,
-            muted: false,
-            volume: 1.0
+        // Intento de arranque automático (para ordenadores)
+        window.addEventListener('load', () => {
+            let promise = video.play();
+            if (promise !== undefined) {
+                promise.then(() => {
+                    // Si el navegador permite autoplay, intentamos cargar audio
+                    audio.play().then(() => {
+                        overlay.style.display = 'none';
+                    }).catch(() => {
+                        // Si el móvil bloquea el audio con autoplay, mostramos botón
+                        overlay.style.display = 'flex';
+                    });
+                }).catch(() => {
+                    overlay.style.display = 'flex';
+                });
+            }
         });
 
-        // Insertar el botón HD
-        player.ready(function() {
-            const controlBar = player.controlBar.el();
-            const hdButton = document.createElement('div');
-            hdButton.className = 'hd-badge vjs-control';
-            hdButton.innerHTML = 'HD';
-            
-            const fullscreenToggle = player.controlBar.fullscreenToggle.el();
-            controlBar.insertBefore(hdButton, fullscreenToggle);
+        // Pulsación manual (para móviles)
+        playBtn.addEventListener('click', () => {
+            video.muted = false; // Desbloquea sonido en móvil
+            video.play();
+            audio.play();
+            overlay.style.display = 'none'; // Oculta el botón
         });
-
-        // Carga de señal HLS
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(streamUrl);
-            hls.attachMedia(videoElement);
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                player.play().catch(e => console.log("Autoplay bloqueado:", e));
-            });
-        } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-            videoElement.src = streamUrl;
-            videoElement.addEventListener('loadedmetadata', function() {
-                player.play().catch(e => console.log("Autoplay en iOS:", e));
-            });
-        }
     </script>
 </body>
+</html>
