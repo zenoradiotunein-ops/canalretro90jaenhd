@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Canal Retro 90 Jaén - HD</title>
+    <!-- Cargador HLS para vídeo en streaming -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #000;
+        }
+        video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain; /* Mantiene la proporción del vídeo sin deformarlo */
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Reproductor de vídeo a pantalla completa -->
+    <video id="videoPlayer" controls autoplay playsinline></video>
+
+    <script>
+        const video = document.getElementById('videoPlayer');
+        // Pones tu enlace .m3u8 exacto del canal de vídeo aquí dentro
+        const streamUrl = 'https://6641e38ac34c3.streamlock.net:1936/radioporcuna/radioporcuna/playlist.m3u8';
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(streamUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED,function() {
+                video.play().catch(e => console.log("Autoplay bloqueado por el navegador:", e));
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Compatibilidad directa para iPhone / Safari
+            video.src = streamUrl;
+            video.addEventListener('loadedmetadata',function() {
+                video.play().catch(e => console.log("Autoplay true:", e));
+            });
+        }
+    </script>
+
+</body>
+</html>
