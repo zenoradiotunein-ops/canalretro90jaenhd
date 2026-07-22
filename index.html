@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Canal Retro 90 Jaén HD</title>
-    <!-- Librería HLS.js para reproducir M3U8 -->
+    <!-- Librería para reproducir M3U8 -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
@@ -20,7 +20,6 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        /* Contenedor principal ajustado */
         .video-container {
             position: absolute;
             top: 0;
@@ -28,25 +27,32 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 3px solid #00e5ff;
-            box-shadow: inset 0 0 15px #00e5ff;
             background-color: #000;
         }
 
-        /* Vídeo obligado a encajar perfectamente sin salirse ni estirarse de más */
         video {
             width: 100%;
             height: 100%;
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            background-color: #000;
+            object-fit: cover;
         }
 
-        /* Capa del botón de reproducción */
+        /* Distintivo HD discreto abajo a la izquierda */
+        .hd-badge {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 4;
+        }
+
+        /* Capa superpuesta oscura */
         .overlay {
             position: absolute;
             top: 0;
@@ -54,40 +60,48 @@
             width: 100%;
             height: 100%;
             z-index: 3;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* Botón Neón LED Azul */
+        /* Botón estilo negro elegante */
         .play-btn {
-            padding: 15px 30px;
+            padding: 16px 32px;
             font-size: 16px;
             font-weight: bold;
             color: #fff;
-            background: linear-gradient(135deg, #00c6ff, #0072ff);
-            border: 2px solid #00e5ff;
-            border-radius: 50px;
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.8);
+            background-color: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             cursor: pointer;
             outline: none;
             z-index: 5;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .play-btn:hover {
+            background-color: #222;
+        }
+
+        .play-btn:active {
+            transform: scale(0.96);
         }
     </style>
 </head>
 <body>
 
-    <!-- SIN NADA ARRIBA: Pantalla completamente limpia para tu logo -->
+    <!-- Distintivo HD añadido -->
+    <div class="hd-badge">HD</div>
 
     <div class="video-container">
-        <video id="bgVideo" playsinline muted preload="auto"></video>
+        <video id="bgVideo" playsinline preload="auto"></video>
     </div>
 
     <div class="overlay" id="overlay">
-        <button class="play-btn" id="playBtn">▶️ REPRODUCIR DIRECTO</button>
+        <button class="play-btn" id="playBtn">▶️ Reproducir</button>
     </div>
 
     <script>
@@ -108,18 +122,15 @@
             video.src = m3u8Url;
         }
 
-        window.addEventListener('load', () => {
-            video.play().then(() => {
-                overlay.style.display = 'none';
-            }).catch(() => {
-                overlay.style.display = 'flex';
-            });
-        });
-
         playBtn.addEventListener('click', () => {
             video.muted = false;
-            video.play();
-            overlay.style.display = 'none';
+            video.volume = 1.0;
+            
+            video.play().then(() => {
+                overlay.style.display = 'none';
+            }).catch(error => {
+                console.log("Error al reproducir:", error);
+            });
 
             const elem = document.documentElement;
             if (elem.requestFullscreen) {
