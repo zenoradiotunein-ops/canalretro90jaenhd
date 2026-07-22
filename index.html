@@ -18,25 +18,36 @@
             overflow: hidden;
             background-color: #000;
             font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
+        /* Contenedor en formato 16:9 estricto */
         .video-container {
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative;
             width: 100%;
-            height: 100%;
-            z-index: 1;
+            max-width: 1280px;
+            aspect-ratio: 16 / 9;
             background-color: #000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .video-container {
+                width: 100%;
+                height: auto;
+            }
         }
 
         video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            background-color: #000;
         }
 
-        /* Distintivo HD discreto abajo a la izquierda */
+        /* Distintivo HD abajo a la izquierda */
         .hd-badge {
             position: absolute;
             bottom: 15px;
@@ -50,9 +61,10 @@
             font-weight: bold;
             letter-spacing: 1px;
             z-index: 4;
+            pointer-events: none;
         }
 
-        /* Capa superpuesta oscura */
+        /* Capa inicial */
         .overlay {
             position: absolute;
             top: 0;
@@ -64,26 +76,27 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: opacity 0.3s ease;
         }
 
-        /* Botón negro elegante, sin rastros de azul */
+        /* Botón de reproducción negro puro y elegante */
         .play-btn {
             padding: 16px 32px;
             font-size: 16px;
             font-weight: bold;
-            color: #fff;
-            background-color: #111;
-            border: 1px solid #333;
+            color: #ffffff;
+            background-color: #000000;
+            border: 2px solid #333333;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
             cursor: pointer;
             outline: none;
-            z-index: 5;
-            transition: background-color 0.2s, transform 0.2s;
+            transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
         }
 
         .play-btn:hover {
-            background-color: #222;
+            background-color: #1a1a1a;
+            border-color: #555555;
         }
 
         .play-btn:active {
@@ -93,15 +106,17 @@
 </head>
 <body>
 
-    <!-- Distintivo HD -->
-    <div class="hd-badge">HD</div>
-
     <div class="video-container">
-        <video id="bgVideo" playsinline preload="auto"></video>
-    </div>
+        <!-- Distintivo HD -->
+        <div class="hd-badge">HD</div>
 
-    <div class="overlay" id="overlay">
-        <button class="play-btn" id="playBtn">▶️ Reproducir</button>
+        <!-- Vídeo con controles nativos -->
+        <video id="bgVideo" playsinline controls preload="auto"></video>
+
+        <!-- Capa y botón negro inicial -->
+        <div class="overlay" id="overlay">
+            <button class="play-btn" id="playBtn">▶️ Reproducir</button>
+        </div>
     </div>
 
     <script>
@@ -111,6 +126,19 @@
         const playBtn = document.getElementById('playBtn');
         const overlay = document.getElementById('overlay');
 
+        function iniciarReproduccion() {
+            video.muted = false;
+            video.volume = 1.0;
+            video.play().then(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }).catch(error => {
+                console.log("Reproducción automática bloqueada por el navegador:", error);
+            });
+        }
+
         if (Hls.isSupported()) {
             const hls = new Hls({
                 enableWorker: true,
@@ -118,29 +146,20 @@
             });
             hls.loadSource(m3u8Url);
             hls.attachMedia(video);
+            
+            // Intenta reproducir automáticamente en cuanto HLS esté listo
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                iniciarReproduccion();
+            });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = m3u8Url;
+            video.addEventListener('loadedmetadata', () => {
+                iniciarReproduccion();
+            });
         }
 
-        playBtn.addEventListener('click', () => {
-            video.muted = false;
-            video.volume = 1.0;
-            
-            video.play().then(() => {
-                overlay.style.display = 'none';
-            }).catch(error => {
-                console.log("Error al reproducir:", error);
-            });
-
-            const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(() => {});
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen().catch(() => {});
-            } else if (video.webkitEnterFullscreen) {
-                video.webkitEnterFullscreen();
-            }
-        });
+        // Por si el navegador bloquea el auto-play, el botón negro sigue ahí para arrancar al toque
+        playBtn.addEventListener('click', iniciarReproduccion);
     </script>
 </body>
 </html>
