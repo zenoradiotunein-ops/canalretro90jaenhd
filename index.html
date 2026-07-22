@@ -2,58 +2,114 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Canal Retro 90 Jaén - HD</title>
-    <!-- Cargador HLS para vídeo en streaming -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canal Retro 90 Jaén HD</title>
+
+    <!-- Hojas de estilo y librería Video.js -->
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
     <style>
-        * {
+        body, html {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            width: 100%;
+            height: 100%;
             background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: contain; /* Mantiene la proporción del vídeo sin deformarlo */
-            background-color: #000;
+
+        /* Contenedor adaptativo 16:9 */
+        .video-container {
+            width: 100%;
+            max-width: 960px;
+            aspect-ratio: 16 / 9;
+            position: relative;
+        }
+
+        .video-js {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Estilos personalizados para las barras azules retro y el HD */
+        .vjs-matrix .vjs-control-bar {
+            background-color: rgba(10, 15, 25, 0.85) !important;
+        }
+
+        /* Barras de volumen y progreso en azul neón */
+        .vjs-matrix .vjs-play-progress, 
+        .vjs-matrix .vjs-volume-level {
+            background-color: #00a8ff !important;
+            box-shadow: 0 0 8px #00a8ff;
+        }
+
+        /* Chapa HD en los controles */
+        .hd-badge {
+            color: #00a8ff;
+            font-weight: bold;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+            border: 1px solid #00a8ff;
+            border-radius: 3px;
+            height: 20px;
+            margin-top: 5px;
+            margin-right: 5px;
+            text-shadow: 0 0 5px #00a8ff;
         }
     </style>
 </head>
 <body>
 
-    <!-- Reproductor de vídeo a pantalla completa -->
-    <video id="videoPlayer" controls autoplay playsinline></video>
+    <div class="video-container">
+        <video id="videoPlayer" class="video-js vjs-default-skin vjs-matrix vjs-big-play-centered" controls playsinline preload="auto">
+        </video>
+    </div>
 
     <script>
-        const video = document.getElementById('videoPlayer');
-        // Pones tu enlace .m3u8 exacto del canal de vídeo aquí dentro
+        const videoElement = document.getElementById('videoPlayer');
         const streamUrl = 'https://6641e38ac34c3.streamlock.net:1936/radioporcuna/radioporcuna/playlist.m3u8';
 
+        // Inicialización de Video.js
+        const player = videojs('videoPlayer', {
+            autoplay: true,
+            controls: true,
+            responsive: true,
+            muted: false,
+            volume: 1.0
+        });
+
+        // Insertar el botón HD
+        player.ready(function() {
+            const controlBar = player.controlBar.el();
+            const hdButton = document.createElement('div');
+            hdButton.className = 'hd-badge vjs-control';
+            hdButton.innerHTML = 'HD';
+            
+            const fullscreenToggle = player.controlBar.fullscreenToggle.el();
+            controlBar.insertBefore(hdButton, fullscreenToggle);
+        });
+
+        // Carga de señal HLS
         if (Hls.isSupported()) {
             const hls = new Hls();
             hls.loadSource(streamUrl);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED,function() {
-                video.play().catch(e => console.log("Autoplay bloqueado por el navegador:", e));
+            hls.attachMedia(videoElement);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                player.play().catch(e => console.log("Autoplay bloqueado:", e));
             });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Compatibilidad directa para iPhone / Safari
-            video.src = streamUrl;
-            video.addEventListener('loadedmetadata',function() {
-                video.play().catch(e => console.log("Autoplay true:", e));
+        } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+            videoElement.src = streamUrl;
+            videoElement.addEventListener('loadedmetadata', function() {
+                player.play().catch(e => console.log("Autoplay en iOS:", e));
             });
         }
     </script>
-
 </body>
 </html>
