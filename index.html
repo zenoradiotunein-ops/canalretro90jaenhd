@@ -79,28 +79,33 @@
             transition: opacity 0.3s ease;
         }
 
-        /* Botón de reproducción negro puro y elegante */
+        /* Botón redondo negro clásico con icono de Play */
         .play-btn {
-            padding: 16px 32px;
-            font-size: 16px;
-            font-weight: bold;
+            width: 80px;
+            height: 80px;
+            font-size: 28px;
             color: #ffffff;
             background-color: #000000;
-            border: 2px solid #333333;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
             cursor: pointer;
             outline: none;
-            transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-left: 4px; /* Centra ópticamente el símbolo del triángulo */
+            transition: background-color 0.2s, transform 0.2s, border-color 0.2s;
         }
 
         .play-btn:hover {
             background-color: #1a1a1a;
-            border-color: #555555;
+            border-color: rgba(255, 255, 255, 0.7);
+            transform: scale(1.05);
         }
 
         .play-btn:active {
-            transform: scale(0.96);
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -113,9 +118,9 @@
         <!-- Vídeo con controles nativos -->
         <video id="bgVideo" playsinline controls preload="auto"></video>
 
-        <!-- Capa y botón negro inicial -->
+        <!-- Capa y botón redondo negro inicial -->
         <div class="overlay" id="overlay">
-            <button class="play-btn" id="playBtn">▶️ Reproducir</button>
+            <button class="play-btn" id="playBtn">▶️</button>
         </div>
     </div>
 
@@ -147,7 +152,6 @@
             hls.loadSource(m3u8Url);
             hls.attachMedia(video);
             
-            // Intenta reproducir automáticamente en cuanto HLS esté listo
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
                 iniciarReproduccion();
             });
@@ -158,7 +162,6 @@
             });
         }
 
-        // Por si el navegador bloquea el auto-play, el botón negro sigue ahí para arrancar al toque
         playBtn.addEventListener('click', iniciarReproduccion);
     </script>
 </body>
