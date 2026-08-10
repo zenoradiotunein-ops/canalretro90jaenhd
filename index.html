@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Canal Retro 90 Jaén HD</title>
-    <!-- Librería para reproducir M3U8 -->
+    <title>Canal Retro 90 Jaén - HD</title>
+    <!-- Cargador HLS para vídeo en streaming -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
@@ -12,157 +12,57 @@
             padding: 0;
             box-sizing: border-box;
         }
-        body, html {
-            width: 100%;
-            height: 100%;
+        html, body {
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
             background-color: #000;
-            font-family: Arial, Helvetica, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
-
-        /* Contenedor en formato 16:9 estricto */
-        .video-container {
-            position: relative;
-            width: 100%;
-            max-width: 1280px;
-            aspect-ratio: 16 / 9;
-            background-color: #000;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-        }
-
-        @media (max-width: 768px) {
-            .video-container {
-                width: 100%;
-                height: auto;
-            }
-        }
-
         video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background-color: #000;
-        }
-
-        /* Distintivo HD abajo a la izquierda */
-        .hd-badge {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
-            background: rgba(0, 0, 0, 0.75);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            z-index: 4;
-            pointer-events: none;
-        }
-
-        /* Capa inicial */
-        .overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 3;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.3s ease;
-        }
-
-        /* Botón redondo negro clásico con icono de Play */
-        .play-btn {
-            width: 80px;
-            height: 80px;
-            font-size: 28px;
-            color: #ffffff;
-            background-color: #000000;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-            cursor: pointer;
-            outline: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding-left: 4px; /* Centra ópticamente el símbolo del triángulo */
-            transition: background-color 0.2s, transform 0.2s, border-color 0.2s;
-        }
-
-        .play-btn:hover {
-            background-color: #1a1a1a;
-            border-color: rgba(255, 255, 255, 0.7);
-            transform: scale(1.05);
-        }
-
-        .play-btn:active {
-            transform: scale(0.95);
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain; /* Mantiene la proporción del vídeo sin deformarlo */
+            background-color: #000;
         }
     </style>
 </head>
 <body>
 
-    <div class="video-container">
-        <!-- Distintivo HD -->
-        <div class="hd-badge">HD</div>
-
-        <!-- Vídeo con controles nativos -->
-        <video id="bgVideo" playsinline controls preload="auto"></video>
-
-        <!-- Capa y botón redondo negro inicial -->
-        <div class="overlay" id="overlay">
-            <button class="play-btn" id="playBtn">▶️</button>
-        </div>
-    </div>
+    <!-- Reproductor de vídeo a pantalla completa -->
+    <video id="videoPlayer" controls autoplay playsinline></video>
 
     <script>
-        const m3u8Url = 'https://6641e38ac34c3.streamlock.net:1936/radioporcuna/radioporcuna/playlist.m3u8';
-
-        const video = document.getElementById('bgVideo');
-        const playBtn = document.getElementById('playBtn');
-        const overlay = document.getElementById('overlay');
-
-        function iniciarReproduccion() {
-            video.muted = false;
-            video.volume = 1.0;
-            video.play().then(() => {
-                overlay.style.opacity = '0';
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                }, 300);
-            }).catch(error => {
-                console.log("Reproducción automática bloqueada por el navegador:", error);
-            });
-        }
+        const video = document.getElementById('videoPlayer');
+        // Enlace .m3u8 del canal de vídeo
+        const streamUrl = 'https://6641e38ac34c3.streamlock.net:1936/radioporcuna/radioporcuna/playlist.m3u8';
 
         if (Hls.isSupported()) {
             const hls = new Hls({
                 enableWorker: true,
-                lowLatencyMode: true
+                lowLatencyMode: true,          // Activa el modo de baja latencia
+                backBufferLength: 0,           // Libera memoria acumulada de lo ya reproducido
+                maxBufferLength: 3,            // Buffer objetivo de solo 3 segundos
+                maxMaxBufferLength: 5,         // Límite máximo absoluto de buffer
+                liveSyncDurationCount: 1,      // Sincroniza al milímetro con el último trozo emitido
+                liveMaxLatencyDurationCount: 3 // Fuerza un salto hacia adelante si detecta retardo
             });
-            hls.loadSource(m3u8Url);
+
+            hls.loadSource(streamUrl);
             hls.attachMedia(video);
-            
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                iniciarReproduccion();
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(e => console.log("Autoplay bloqueado por el navegador:", e));
             });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = m3u8Url;
-            video.addEventListener('loadedmetadata', () => {
-                iniciarReproduccion();
+            // Compatibilidad directa para iPhone / Safari
+            video.src = streamUrl;
+            video.addEventListener('loadedmetadata', function() {
+                video.play().catch(e => console.log("Autoplay true:", e));
             });
         }
-
-        playBtn.addEventListener('click', iniciarReproduccion);
     </script>
+
 </body>
 </html>
