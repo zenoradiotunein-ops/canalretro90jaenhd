@@ -42,12 +42,12 @@
         if (Hls.isSupported()) {
             const hls = new Hls({
                 enableWorker: true,
-                lowLatencyMode: true,          // Activa el modo de baja latencia
-                backBufferLength: 0,           // Libera memoria acumulada de lo ya reproducido
-                maxBufferLength: 3,            // Buffer objetivo de solo 3 segundos
-                maxMaxBufferLength: 5,         // Límite máximo absoluto de buffer
-                liveSyncDurationCount: 1,      // Sincroniza al milímetro con el último trozo emitido
-                liveMaxLatencyDurationCount: 3 // Fuerza un salto hacia adelante si detecta retardo
+                lowLatencyMode: false,          // Activa el modo de baja latencia
+                backBufferLength: 30,           // Libera memoria acumulada de lo ya reproducido
+                maxBufferLength: 60,            // Buffer objetivo de solo 3 segundos
+                maxMaxBufferLength: 120,         // Límite máximo absoluto de buffer
+                liveSyncDurationCount: 5,      // Sincroniza al milímetro con el último trozo emitido
+                liveMaxLatencyDurationCount: 10 // Fuerza un salto hacia adelante si detecta retardo
             });
 
             hls.loadSource(streamUrl);
