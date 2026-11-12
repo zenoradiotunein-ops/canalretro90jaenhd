@@ -44,8 +44,8 @@
                 enableWorker: true,
                 lowLatencyMode: false,          // Activa el modo de baja latencia
                 backBufferLength: 30,           // Libera memoria acumulada de lo ya reproducido
-                maxBufferLength: 60,            // Buffer objetivo de solo 3 segundos
-                maxMaxBufferLength: 120,         // Límite máximo absoluto de buffer
+                maxBufferLength: 20,            // Buffer objetivo de solo 3 segundos
+                maxMaxBufferLength: 45,         // Límite máximo absoluto de buffer
                 liveSyncDurationCount: 5,      // Sincroniza al milímetro con el último trozo emitido
                 liveMaxLatencyDurationCount: 10 // Fuerza un salto hacia adelante si detecta retardo
             });
