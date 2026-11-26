@@ -13,7 +13,7 @@
   <meta name="application-name" content="Retro 90 TV">
   <meta name="theme-color" content="#000000">
 
-  <!-- Icono de la aplicación en el móvil usando tv.png -->
+  <!-- Icono usando tv.png -->
   <link rel="icon" type="image/png" href="https://zenoradiotunein-ops.github.io/canalretro90jaenhd/tv.png">
   <link rel="shortcut icon" type="image/png" href="https://zenoradiotunein-ops.github.io/canalretro90jaenhd/tv.png">
   <link rel="apple-touch-icon" href="https://zenoradiotunein-ops.github.io/canalretro90jaenhd/tv.png">
@@ -26,6 +26,7 @@
       background-color: #000000;
       overflow: hidden;
       font-family: Arial, sans-serif;
+      position: relative;
     }
     iframe {
       width: 100%;
@@ -33,9 +34,36 @@
       border: none;
       display: block;
     }
+    /* Insignia redonda con borde blanco */
+    .tvp-badge-blanco {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 3px solid #ffffff;
+      background-color: rgba(0, 0, 0, 0.8);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    .tvp-badge-blanco img {
+      width: 82%;
+      height: 82%;
+      object-fit: contain;
+    }
   </style>
 </head>
 <body>
+  <div class="tvp-badge-blanco">
+    <img src="https://zenoradiotunein-ops.github.io/canalretro90jaenhd/tv.png" alt="TVP">
+  </div>
+
   <!-- Carga tu canal directamente a pantalla completa dentro de la App -->
   <iframe src="https://zenoradiotunein-ops.github.io/canalretro90jaenhd/index.html" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
 </body>
